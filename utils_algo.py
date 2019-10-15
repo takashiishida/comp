@@ -29,13 +29,12 @@ def non_negative_loss(f, K, labels, ccp, beta):
     return final_loss, torch.mul(torch.from_numpy(count).float().to(device), loss_vector)
 
 def forward_loss(f, K, labels):
-    criterion = nn.CrossEntropyLoss()
     Q = torch.ones(K,K) * 1/(K-1)
     Q = Q.to(device)
     for k in range(K):
         Q[k,k] = 0
-    q = torch.mm(f, Q)
-    return criterion(q, labels.long())
+    q = torch.mm(F.softmax(f, 1), Q)
+    return F.nll_loss(q.log(), labels.long())
 
 def pc_loss(f, K, labels):
     sigmoid = nn.Sigmoid()
