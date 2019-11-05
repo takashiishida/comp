@@ -10,16 +10,18 @@ def assump_free_loss(f, K, labels, ccp):
     return non_negative_loss(f=f, K=K, labels=labels, ccp=ccp, beta=np.inf)
 
 def non_negative_loss(f, K, labels, ccp, beta):
-    ccp = torch.from_numpy(ccp).float().to(device).requires_grad_()
+    ccp = torch.from_numpy(ccp).float().to(device)
     neglog = -F.log_softmax(f, dim=1)
     loss_vector = torch.zeros(K, requires_grad=True).to(device)
+    temp_loss_vector = torch.zeros(K).to(device)
     for k in range(K):
         idx = labels == k
         if torch.sum(idx).item() > 0:
             idxs = idx.byte().view(-1,1).repeat(1,K)
             neglog_k = torch.masked_select(neglog, idxs).view(-1,K)
-            loss_vector[k] = loss_vector[k] -(K-1) * ccp[k] * torch.mean(neglog_k, dim=0)[k]  # average of k-th class loss for k-th comp class samples
+            temp_loss_vector[k] = -(K-1) * ccp[k] * torch.mean(neglog_k, dim=0)[k]  # average of k-th class loss for k-th comp class samples
             loss_vector = loss_vector + torch.mul(ccp, torch.mean(neglog_k, dim=0))  # only k-th in the summation of the second term inside max 
+    loss_vector = loss_vector + temp_loss_vector
     count = np.bincount(labels.data.cpu()).astype('float')
     while len(count) < K:
         count = np.append(count, 0) # when largest label is below K, bincount will not take care of them
