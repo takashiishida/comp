@@ -18,7 +18,6 @@ parser.add_argument('-me', '--method', help='method type. ga: gradient ascent. n
 parser.add_argument('-mo', '--model', help='model name', choices=['linear', 'mlp'], type=str, required=True)
 parser.add_argument('-e', '--epochs', help='number of epochs', type=int, default=300)
 parser.add_argument('-wd', '--weight_decay', help='weight decay', default=1e-4, type=float)
-parser.add_argument('-p', '--parallel_gpus', help='Enable usage of multiple GPUs', action='store_true')
 
 args = parser.parse_args()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -33,7 +32,6 @@ if args.model == 'mlp':
 elif args.model == 'linear':
     model = linear_model(input_dim=28*28, output_dim=K)
 
-if torch.cuda.device_count() > 1 and args.parallel_gpus: model = nn.DataParallel(model)
 model = model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), weight_decay=args.weight_decay, lr = args.learning_rate)
