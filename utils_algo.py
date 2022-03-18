@@ -20,7 +20,7 @@ def non_negative_loss(f, K, labels, ccp, beta):
             idxs = idx.byte().view(-1,1).repeat(1,K)
             neglog_k = torch.masked_select(neglog, idxs).view(-1,K)
             temp_loss_vector[k] = -(K-1) * ccp[k] * torch.mean(neglog_k, dim=0)[k]  # average of k-th class loss for k-th comp class samples
-            loss_vector = loss_vector + torch.mul(ccp, torch.mean(neglog_k, dim=0))  # only k-th in the summation of the second term inside max 
+            loss_vector = loss_vector + torch.mul(ccp[k], torch.mean(neglog_k, dim=0))  # only k-th in the summation of the second term inside max 
     loss_vector = loss_vector + temp_loss_vector
     count = np.bincount(labels.data.cpu()).astype('float')
     while len(count) < K:
